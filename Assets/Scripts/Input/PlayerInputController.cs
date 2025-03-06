@@ -7,6 +7,7 @@ namespace Input
     public class PlayerInputController : MonoBehaviour
     {
         [SerializeField] private Camera _camera;
+        [SerializeField] private LayerMask _draggableLayer;
 
         private PlayerInput _input;
 
@@ -43,10 +44,10 @@ namespace Input
 
             Draggable draggableObject = null;
 
-            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector3.forward, float.PositiveInfinity);
+            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector3.forward, float.PositiveInfinity, _draggableLayer);
 
             if (hit.collider != null)
-                draggableObject = hit.collider.GetComponent<Draggable>();
+                draggableObject = hit.collider.GetComponentInParent<Draggable>();
 
             DragStarted?.Invoke(draggableObject, mousePosition);
         }

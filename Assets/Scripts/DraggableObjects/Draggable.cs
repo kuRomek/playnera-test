@@ -1,62 +1,49 @@
-using Input;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public abstract class Draggable : MonoBehaviour
 {
-    [SerializeField] private PlayerInputController _inputController;
+    private const string DraggableLayer = "Draggable";
 
     private Rigidbody2D _rigidbody;
-    private Vector3 _lastMousePosition;
-    private bool _isDragging = false;
+    private float _defaultGravityScale = 5f;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+        _rigidbody.gravityScale = _defaultGravityScale;
     }
 
-    private void OnEnable()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        _inputController.DragStarted += OnDragStarted;
-        _inputController.Dragging += Drag;
-        _inputController.DragCanceled += OnDragCanceled;
+        if (collision.gameObject.layer == LayerMask.NameToLayer(DraggableLayer))
+            return;
+
+        _rigidbody.isKinematic = true;
+        _rigidbody.velocity = Vector3.zero;
     }
 
-    private void OnDisable()
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        _inputController.DragStarted -= OnDragStarted;
-        _inputController.Dragging -= Drag;
-        _inputController.DragCanceled -= OnDragCanceled;
+        if (collision.gameObject.layer == LayerMask.NameToLayer(DraggableLayer))
+            return;
+
+        _rigidbody.isKinematic = false;
     }
 
-    private void OnDragStarted(Draggable draggingObject, Vector3 mousePosition)
+    public void SetDraggingMode()
     {
-        if (draggingObject == this)
-        {
-            _rigidbody.isKinematic = true;
-            _rigidbody.velocity = Vector2.zero;
-            _lastMousePosition = mousePosition;
-            _isDragging = true;
-        }
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.gravityScale = 0f;
+        _rigidbody.isKinematic = true;
     }
 
-    private void Drag(Vector3 mousePosition)
+    public void RemoveDraggingMode()
     {
-        if (_isDragging)
-        {
-            Vector3 newMousePosition = mousePosition;
-            Vector3 delta = mousePosition - _lastMousePosition;
-            transform.position += new Vector3(delta.x, delta.y, 0f);
+        if (_rigidbody.isKinematic)
+            return;
 
-            _lastMousePosition = newMousePosition;
-        }
-    }
-
-    private void OnDragCanceled()
-    {
-        if (_isDragging)
-        {
-            _rigidbody.isKinematic = false;
-            _isDragging = false;
-        }
+        _rigidbody.gravityScale = _defaultGravityScale;
+        _rigidbody.isKinematic = false;
     }
 }
